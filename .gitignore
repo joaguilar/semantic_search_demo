@@ -161,3 +161,4 @@ cython_debug/
 env.bat
 semantic/**
 data/cran/cran*
+.vscode/launch.json
