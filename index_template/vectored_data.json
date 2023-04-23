@@ -32,14 +32,14 @@ PUT https://localhost:9200/_template/vectortemplate
           "relations":{
               "articles":"sentence"
           }
+        },
+        "url":{
+          "type": "keyword"
         }
       }
     },
     "aliases": {
       "demo": { }
     },
-  "version": 1,
-  "_meta": {
-    "description": "Documents and Sentence indices"
-  }
+  "version": 1
 }

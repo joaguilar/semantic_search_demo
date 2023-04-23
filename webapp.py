@@ -223,7 +223,7 @@ else:
         context = context+" "+result['Content']
         results.append(result)
 if (generate_answer):
-    the_prompt = "Answer this question as an engineer "+query+" based on "+context[:250]+"."
+    the_prompt = "Contesta la siguiente pregunta como si fueras un abogado "+query+" based on "+context[:2000]+"."
     print("PROMPT:||"+the_prompt+"||")
     # response = openai.Completion.create(
     #             model="text-davinci-003",
@@ -236,7 +236,8 @@ if (generate_answer):
     #         )
     response = openai.ChatCompletion.create(
         messages=[
-            {"role":"user","content":the_prompt}
+            {"role":"user","content":the_prompt},
+            {"role":"system","content":"Actúa como si fueras un abogado"}
         ],
         model="gpt-3.5-turbo",
         temperature=0.2,

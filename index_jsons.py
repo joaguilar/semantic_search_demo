@@ -35,6 +35,8 @@ def getAllDocuments():
                 raise Exception(f"The file {the_json} doesn't contain the required field 'id', skipping.")
             if 'metadata' in data:
                     doc['description']=data['metadata']
+            if 'url' in data:
+                doc['url']=data['url']
             if 'content_split' in data:
                 if len(data['content_split']) >0:
                     doc['content_split']=data['content_split']
@@ -93,7 +95,8 @@ def main():
                 "title": doc['title'],
                 "my_id": doc_id,
                 "content": doc["content"],
-                "articles_sentence":"articles"
+                "articles_sentence":"articles",
+                "url": doc["url"]
             }
 
             #Index the parent document:
@@ -120,7 +123,8 @@ def main():
                         "name": "sentence",
                         "parent": doc['id']
                     },
-                    "sentence": sentence
+                    "sentence": sentence,
+                    "url": doc["url"]
                 }
                 # print(json.dumps(child,indent=2))
                 # And index it:
