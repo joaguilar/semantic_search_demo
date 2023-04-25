@@ -10,7 +10,7 @@ import nltk
 
 tesseract_path = os.getenv("TESSERACT_LOCATION")
 poppler_path = os.getenv("POPPLER_LOCATION")
-pytesseract.pytesseract.tesseract_cmd = tesseract_path
+#pytesseract.pytesseract.tesseract_cmd = tesseract_path
 print("Using Poppler:"+poppler_path)
 print("Using Tesseract:"+tesseract_path)
 #Required to split the text into sentences using nltk:
@@ -39,15 +39,17 @@ for pdf_path in pdf_files:
                 img.save(img_name, "PNG")
 
             png_files = [f for f in os.listdir(tmpdirname+"\.") if f.endswith(".png")]
-
+            print(png_files)
             for png_file in png_files:
                 extracted_text = pytesseract.image_to_string(Image.open(tmpdirname+"\\"+png_file))
                 print(extracted_text)
                 f.write(extracted_text)
                 
+            
             #Example on how to split the text into sentences using nltk:
             sentences = sent_tokenize(extracted_text)
             for sentence in sentences:
                 print(f"Sentence: [{sentence}]")
+                
             
 
