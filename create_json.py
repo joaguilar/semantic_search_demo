@@ -8,28 +8,33 @@ json_files=[]
 
 for file in os.scandir(".\\data\\documents\\."):
     #print(file.path)
-    if (file.path.endswith("txt")):
-        print("---------------------------------------------------------------------")
+    if (file.path.endswith("documento2.txt")):
         txt_files.append(file)
-        print("---------------------------------------------------------------------")
-        print("---------------------------------------------------------------------")
+       
 
 for file in os.scandir(".\\data\\jsons\\."):
     #print(file.path)
     if (file.path.endswith("json")):
-        print("---------------------------------------------------------------------")
         json_files.append(file)
-        print("---------------------------------------------------------------------")
-        print("---------------------------------------------------------------------")
+       
 
 
-i=0
+for txt in txt_files:
+    print("Processing txt =  "+txt.path)
+    with open(txt.path, 'r', encoding="utf8") as f:
+        lines = f.readlines()
+        
+    test =" \ "
+    test2= test.strip()+"n"
+    lines = [line.replace('\n', test2) for line in lines]
+    
+    
+    print("Creado txt nuevo docuemnto"+txt.path)
+    print("---------------------------------------------------------------------")
+    with open(txt.path, 'w', encoding="utf8") as f:
+        f.writelines(lines)
 
 
-
-
-
-  
     
 for json_Data in json_files:
     data={}
@@ -52,6 +57,12 @@ for json_Data in json_files:
     print("Update Json document"+ json_Data.path)
     with open(json_Data.path,'w', encoding="utf8") as jsonUpdate:
         json.dump(data,jsonUpdate,ensure_ascii= False)
+
+
+
+
+  
+
     
     
     
