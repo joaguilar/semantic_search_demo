@@ -5,6 +5,7 @@ import requests
 import json
 from elasticsearch import Elasticsearch
 from nltk.tokenize import sent_tokenize 
+from nltk.tokenize import word_tokenize 
 from sentence_transformers import SentenceTransformer
 import os
 import openai
@@ -15,6 +16,10 @@ elastic_ssl   = os.getenv("ELASTIC_SSL_ASSERT")
 elastic_user  = os.getenv("ELASTIC_USER")
 elastic_pwd   = os.getenv("ELASTIC_PASSWORD")
 elastic_index = os.getenv("ELASTIC_INDEX")
+
+def cut_last_incomplete_sentence(text:str):
+    print("cortando:" + "||"+text.rsplit('.',1)[1])
+    return text.rsplit('.',1)[0] + '.'
 
 def get_vector(q):
     sentences =[]
@@ -45,7 +50,7 @@ def query_elastic(index, query, vector):
 
     knns = {
                         "field": "sentence-vector",
-                        "k": 5,
+                        "k": 20,
                         "num_candidates": 100,
                         "query_vector": vector,
                         "boost":2.0
@@ -55,7 +60,8 @@ def query_elastic(index, query, vector):
     r = es.search(
         index=index,
         # query=qs,
-        knn=knns
+        knn=knns,
+        size=20
     )
 
     return r
@@ -159,9 +165,12 @@ with st.form('query', clear_on_submit=False):
     query = st.text_input('Query', 'What is the air-speed velocity of an unladen swallow?')
     st.markdown("""
         Some example queries:
-        * *What is the air-speed velocity of an unladen swallow?*
-        * *why does the compressibility transformation fail to correlate the high speed data for helium and air*,
-        * *what chemical kinetic system is applicable to hypersonic aerodynamic problems*
+        * *Cual es el número del reglamento que rige sobre la ley de contratación administrativa?*
+        * *Pueden los alcaldes municipales ocupar cargos en juntas directivas?*,
+        * *Cuales son las garantias de los ciudadanos sobre los servicios de la contraloria?*
+        * *Es posible hacer un refrendo por medio de medios electrónicos?*
+        * *Puede un individuo participar en compras del estado?*
+        * *Si un proyecto se atrasa, se retorna la garantía de cumplimiento?*
     """)
     index = st.selectbox("Select Index",('vector-leycontraloria','vector-full'))
     individual_sentences = st.checkbox("Return Individual Sentences?", value=True)
@@ -193,14 +202,23 @@ else:
 st.text(r)
 results = []
 context = ""
+c_size = 0
+MAX_TOKENS = 1800
 if individual_sentences:
     for i,hit in enumerate(r['hits']['hits']):
         result = {}
         result['Id'] = hit['_source']['my_id']
-        result['Title'] = hit['_source']['title']
         result['Score'] = hit['_score']
+        result['Title'] = hit['_source']['title']
+        the_size = len(word_tokenize(result["Title"]))
+        if (c_size + the_size) < MAX_TOKENS:
+            context = context+" "+result['Title']
+            c_size = c_size + the_size
         result['sentence'] = hit['_source']['sentence']
-        context = context+" "+result['sentence']
+        the_size = len(word_tokenize(result["sentence"]))
+        if (c_size + the_size) < MAX_TOKENS:
+            context = context+" "+result['sentence']
+            c_size = c_size + the_size
         av = hit['_source']['sentence-vector']
         # print(hit['_source'])
         result['sentence-vector'] = vector_as_text(av,10)
@@ -223,7 +241,9 @@ else:
         context = context+" "+result['Content']
         results.append(result)
 if (generate_answer):
-    the_prompt = "Contesta la siguiente pregunta como si fueras un abogado "+query+" based on "+context[:2000]+"."
+        #Preprocesar el contexto:
+    print(f"El contexto usado consta de {len(word_tokenize(context))} tokens")
+    the_prompt = "Contesta la siguiente pregunta como si fueras un abogado "+query+" basado on "+context+". Si no tiene la información diga que no tiene la información."
     print("PROMPT:||"+the_prompt+"||")
     # response = openai.Completion.create(
     #             model="text-davinci-003",
@@ -241,14 +261,14 @@ if (generate_answer):
         ],
         model="gpt-3.5-turbo",
         temperature=0.2,
-        max_tokens=80,
+        max_tokens=200,
         n=1,
         stop=None #["."]
     )
     print(str(response))
     st.markdown("""---""")
     st.markdown("# Generated Response")
-    st.markdown(response.choices[0].message.content)
+    st.markdown(cut_last_incomplete_sentence(response.choices[0].message.content))
     st.markdown("""---""")
 # print(results)
 # print(json.dumps(results))

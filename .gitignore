@@ -162,3 +162,5 @@ env.bat
 semantic/**
 data/cran/cran*
 .vscode/launch.json
+data/jsons/**
+data/documents/**
