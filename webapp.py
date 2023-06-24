@@ -50,7 +50,7 @@ def query_elastic(index, query, vector):
 
     knns = {
                         "field": "sentence-vector",
-                        "k": 20,
+                        "k": 10,
                         "num_candidates": 100,
                         "query_vector": vector,
                         "boost":2.0
@@ -160,28 +160,33 @@ openai.organization = os.getenv("OPENAI_API_ORG")
 openai.api_key = os.getenv("OPENAI_API_KEY")
 openai.Model.list()
 
-st.title('Semantic Search Demo')
+st.title('Demostración de búsqueda semántica')
+st.markdown("""
+    Esta es una demostración de búsqueda semántica sobre el corpus de la ley de contratación administrativa.
+    El corpus fué del siguiente repositorio: https://www.cgr.go.cr/03-documentos/normativa/ley-reg.html
+    """)
 with st.form('query', clear_on_submit=False):
-    query = st.text_input('Query', 'What is the air-speed velocity of an unladen swallow?')
+    query = st.text_input('Consulta', 'Cual es el número del reglamento que rige sobre la ley de contratación administrativa?')
     st.markdown("""
-        Some example queries:
+        Ejemplos de Consultas:
         * *Cual es el número del reglamento que rige sobre la ley de contratación administrativa?*
         * *Pueden los alcaldes municipales ocupar cargos en juntas directivas?*,
         * *Cuales son las garantias de los ciudadanos sobre los servicios de la contraloria?*
         * *Es posible hacer un refrendo por medio de medios electrónicos?*
         * *Puede un individuo participar en compras del estado?*
         * *Si un proyecto se atrasa, se retorna la garantía de cumplimiento?*
+        * *Cuales son las garantias de los ciudadanos sobre los servicios de la contraloria?*
+        * *Que es la ley de contratación administrativa?*
     """)
-    index = st.selectbox("Select Index",('vector-leycontraloria','vector-full'))
-    individual_sentences = st.checkbox("Return Individual Sentences?", value=True)
-    generate_answer = st.checkbox("Generate an answer?", value=False)
+    index = st.selectbox("Indice",('vector-leycontraloria','vector-full'))
+    individual_sentences = st.checkbox("Retornar las oraciones más relevantes?", value=True)
+    generate_answer = st.checkbox("Generar una respuesta?", value=False)
     submitted = st.form_submit_button(label="Query")
 if not submitted:
     st.stop()
 
 ## Temp:
 test_sentences = sent_tokenize(query,language="english")
-# index = "cranvector-full"
 print("#\t","Sentence")
 for i, s in enumerate(test_sentences):
     print(str(i),"\t",s)
@@ -191,8 +196,7 @@ vector = get_vector(query)
 
 vector_text = vector_as_text(vector,27)
 
-st.markdown("## Query Vector")
-st.text(str(vector_text))
+
 r = {}
 if individual_sentences:
     r = query_elastic(index, query, vector)
@@ -243,7 +247,7 @@ else:
 if (generate_answer):
         #Preprocesar el contexto:
     print(f"El contexto usado consta de {len(word_tokenize(context))} tokens")
-    the_prompt = "Contesta la siguiente pregunta como si fueras un abogado "+query+" basado on "+context+". Si no tiene la información diga que no tiene la información."
+    the_prompt = "Contesta la siguiente pregunta como si fueras un abogado "+query+" basado en "+context+". Si no tiene la información diga que no tiene la información."
     print("PROMPT:||"+the_prompt+"||")
     # response = openai.Completion.create(
     #             model="text-davinci-003",
@@ -260,8 +264,8 @@ if (generate_answer):
             {"role":"system","content":"Actúa como si fueras un abogado"}
         ],
         model="gpt-3.5-turbo",
-        temperature=0.2,
-        max_tokens=200,
+        temperature=0.4,
+        max_tokens=250,
         n=1,
         stop=None #["."]
     )
@@ -272,6 +276,11 @@ if (generate_answer):
     st.markdown("""---""")
 # print(results)
 # print(json.dumps(results))
+
+st.markdown("## Vector generado:")
+st.text(str(vector_text))
+
+st.markdown("## Oraciones seleccionadas:")
 if (len(results) > 0):
     df = pd.DataFrame.from_dict(results)
     st.markdown("## Results")

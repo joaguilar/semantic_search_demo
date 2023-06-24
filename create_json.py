@@ -28,8 +28,8 @@ for txt in txt_files:
     test2= test.strip()+"n"
     lines = [line.replace('\n', test2) for line in lines]
     
-    if(i==3):
-        i+=1 
+    # if(i==3):
+    #     i+=1 
     print("---------------------------------------------------------------------")
     print("Contador en "+str(i))
     print("---------------------------------------------------------------------")
@@ -37,7 +37,8 @@ for txt in txt_files:
        
     print("Creado txt nuevo docuemnto"+str(i))
     print("---------------------------------------------------------------------")
-    with open(".\data\documents\Texto Json\documento"+str(i)+".txt", 'w', encoding="utf8") as f:
+    # with open(".\data\documents\Texto Json\documento"+str(i)+".txt", 'w', encoding="utf8") as f:
+    with open(txt.path, 'w', encoding="utf8") as f:
         f.writelines(lines)
 
     
